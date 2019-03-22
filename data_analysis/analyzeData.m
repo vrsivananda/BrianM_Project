@@ -43,6 +43,12 @@ for i = 1:numberOfSubjects
     
     % Extract the relevant data and place it in esa (extracted sa)
     esa = extractRelevantData(sa);
+    Alldata.data.esa = esa;
+    data = Alldata.data;
+    
+    fileName = [pwd '/Data/structure_data_' subjectId '.mat'];
+    disp(fileName);
+    save(fileName,'data');
     
     % Check if the data should be discarded
     [discarded, discardSubject] = checkDiscard(esa, sa, discarded);

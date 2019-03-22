@@ -13,6 +13,17 @@ subjectListFileId=fopen(path);
 numberOfSubjects = fscanf(subjectListFileId,'%d');
 
 
+% Declare the structure arrays to store the processed data
+discarded.subjectId = [];
+discarded.nInsufficientData = 0;
+discarded.nTooLittleResponse = 0;
+
+coherenceData.pCorrect = [];
+coherenceData.meanConfidence = [];
+coherenceData.meanFrameTime = [];
+coherenceData.correct_incorrect_noResponse = [];
+coherenceData.coherences = [0.2, 0.4, 0.6, 0.8, 1];
+
 % For loop that loops through all the subjects
 for i = 1:numberOfSubjects
     
@@ -30,20 +41,19 @@ for i = 1:numberOfSubjects
     %%%%%%%% Your data extraction here %%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    discarded.subjectId = [];
-    discarded.nDiscarded = 0;
-    
     % Extract the relevant data and place it in esa (extracted sa)
     esa = extractRelevantData(sa);
     
+    
+    
     % Check if the data should be discarded
-    [discarded, discardSubject] = checkDiscard(esa, sa);
+    [discarded, discardSubject] = checkDiscard(esa, sa, discarded);
     
     if(discardSubject)
         continue;
     end
     
-    percentCorrect = getPercentCorrectData(esa);
+    coherenceData = getCoherenceData(esa, coherenceData);
     
     
     
@@ -57,9 +67,7 @@ end % End of for loop that loops through each subject
 %%%%%%%% Your analysis here %%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-
-
+coherenceData = analyzeCoherenceData(coherenceData);
 
 
 
