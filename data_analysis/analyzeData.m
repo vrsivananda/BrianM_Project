@@ -12,6 +12,8 @@ subjectListFileId=fopen(path);
 % Read in the number from the subject list
 numberOfSubjects = fscanf(subjectListFileId,'%d');
 
+
+% Declare the structure arrays to store the processed data
 discarded.subjectId = [];
 discarded.nInsufficientData = 0;
 discarded.nTooLittleResponse = 0;
@@ -64,8 +66,6 @@ end % End of for loop that loops through each subject
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 coherenceData = analyzeCoherenceData(coherenceData);
-
-plotCoherenceData(coherenceData);
 
 
 
