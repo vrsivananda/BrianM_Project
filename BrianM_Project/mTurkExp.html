@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!--
+       Most of the functions below are written by Jason Carpenter.
+       GitHub: https://github.com/jmcarpenter2
+   -->
+   <title>mTurk Short Survey</title>
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+   <script src="jspsych-6.0.5/jspsych.js"></script>
+   <link href="jspsych-6.0.5/css/jspsych.css" rel="stylesheet" type="text/css"></link>
+   <!--Your jsPsych plugins below this line-->
+   
+   <script src="jspsych-RDK-BM.js"></script>
+   <script src="jspsych-instructions.js"></script>
+   <script src="jspsych-6.0.5/plugins/jspsych-fullscreen.js"></script>
+   <script src="preStimDur_inSecs.js"></script>
+   
+   <!--Your jsPsych plugins above this line-->
+   <script src="jspsych-6.0.5/plugins/jspsych-external-html.js"></script>
+   <script src="jspsych-6.0.5/plugins/jspsych-html-keyboard-response.js"></script>
+   <script src="jspsych-6.0.5/plugins/jspsych-html-button-response.js"></script>
+</head>
+<body>
+</body>
+<script>
+    
+        //Data switches
+        var saveLocally = 0;	// 0: Nothing.      1: Download CSV file
+        var displayData = 0;  	// 0: Nothing.      1: Display data on browser
+        var launchOnline = 1;	// 0: Nothing.		1: Save to database, consent form, completion code generation, dummy variables created for all 3 IDs
+        var tableName = 'BrianM_Project'; //Name of the table in the database
+        
+        
+        //Get the info from mTurk
+        var turkInfo = jsPsych.turk.turkInfo();
+        
+        //If we're not on mTurk, we create our own values
+        if(turkInfo.outsideTurk === true){
+            
+            // Use the timestamp as a unique id (specific to the second)
+            var timestamp = Math.floor(Date.now()/1000);
+            
+            workerId = "workerId_" + timestamp;
+            assignmentId = "assignmentId_" + timestamp;
+            hitId = "hitId_" + timestamp;
+            
+        }
+        //Else we're on mTurk and we get the values
+        else{
+          
+            var workerId = turkInfo.workerId;
+            var assignmentId = turkInfo.assignmentId;
+            var hitId = turkInfo.hitId;
+            
+        }
+        
+        //Print out to console to check
+        console.log("workerId: " + workerId);
+        console.log("assignmentId: " + assignmentId);
+        console.log("hitId: " + hitId);
+        
+        
+        //------------------- Your code below this line -------------------
+        
+        var apertureType = 4;
+        var apertureWidth = 800;
+        var apertureHeight = 400;
+        var feedbackTime = 5000;
+        
+        
+        //Change the Seconds to Milliseconds
+        var preStimDur_inMS = [];
+        preStimDur_inSecs.forEach(dur_inSecs => {preStimDur_inMS.push(dur_inSecs*1000);});
+        
+        
+        
+        //--------------------- Make Exp Trials ---------------------
+        
+        //Factors to create counterbalanced trials
+        var factors = {
+            coherences: [0.2, 0.4, 0.6, 0.8, 1],
+            nDots: [200,600,1000],
+            stimulusSide:['left','right'],
+            coherentDirection: [0,180]
+        };
+        var repetitions = 5;
+        var unpack = 1;
+        
+        var trialInput = jsPsych.randomization.factorial(factors, repetitions, unpack);
+        
+        //console.log(trialInput);
+        
+        //Break down the trialInput to 3 categories
+        var coherence_array_1 = trialInput.coherences.slice(0, 100);
+        var coherence_array_2 = trialInput.coherences.slice(100, 200);
+        var coherence_array_3 = trialInput.coherences.slice(200, 300);
+        
+        var nDots_array_1 = trialInput.nDots.slice(0, 100);
+        var nDots_array_2 = trialInput.nDots.slice(100, 200);
+        var nDots_array_3 = trialInput.nDots.slice(200, 300);
+        
+        var stimulusSide_array_1 = trialInput.stimulusSide.slice(0, 100);
+        var stimulusSide_array_2 = trialInput.stimulusSide.slice(100, 200);
+        var stimulusSide_array_3 = trialInput.stimulusSide.slice(200, 300);
+        
+        var coherentDirection_array_1 = trialInput.coherentDirection.slice(0, 100);
+        var coherentDirection_array_2 = trialInput.coherentDirection.slice(100, 200);
+        var coherentDirection_array_3 = trialInput.coherentDirection.slice(200, 300);
+        
+        
+        var timeline = []; //Keep this
+        timeline.push(fullscreen());
+        timeline.push(instructions_1());
+        timeline.push(example_1());
+        timeline.push(instructions_2());
+        timeline.push(example_1());
+        timeline.push(instructions_3());
+        timeline.push(practice_1());
+        timeline.push(instructions_4());
+        timeline.push(practice_2());
+        timeline.push(instructions_5());
+        timeline.push(exp_block_1());
+        timeline.push(rest_block_1());
+        timeline.push(exp_block_2());
+        timeline.push(rest_block_2());
+        timeline.push(exp_block_3());
+        
+        
+        //------------------- Your code above this line -------------------
+        
+        if(launchOnline){
+        	timeline.unshift(createConsentFormBlock())
+           timeline.push(createCompletionCodeBlock());
+           timeline.push(createGoodbyeBlock());
+       }
+
+        //Initiate the experiment
+        jsPsych.init({
+            timeline: timeline,
+            on_finish: function(){ //Execute this when the experiment finishes
+                if(saveLocally == true){
+                    jsPsych.data.get().localSave('csv','testSave.csv'); //Save the data locally in a .csv file
+                }
+                if(displayData == true){
+                    jsPsych.data.displayData(); //Display the data onto the browser screen
+                }
+            },
+            on_trial_finish: function(){ //Execute this after every trial
+                if (launchOnline == true){
+                    save_data(tableName, [jsPsych.data.get().last(1).values()[0]]);
+                }
+            }
+        });
+        
+        
+        //==============================
+        //========= FUNCTIONS ==========
+        //==============================
+        
+        function fullscreen(){
+            return {
+                type: 'fullscreen',
+                fullscreen_mode: true,
+                message: '<p> Welcome to the experiment!</p><p>This experiment requires that your browser be in fullscreen mode. When you click "Next" below, your browser will be put to fullscreen mode automatically.</p>',
+                button_label: 'Next >'
+            };
+        }
+        
+        
+        function instructions_1(){
+            return {
+                type: 'instructions',
+                pages: [
+                '<p> In this experiment, you be shown dots moving on the screen. In the middle of the screen will be a fixation cross. During the entire experiment, you will keep your eyes fixed on the fixation cross.</p>',
+                '<p> As you keep your gaze fixed on the fixation cross in the center of the screen, dots will be moving on the screen randomly. At a certain point, some of the dots will briefly move coherently (i.e. they will move in the same direction rather than randomly). This coherent motion will occur either to the left or to the right of the fixation cross.</p> <p>Your job is to judge whether the coherent motion occurs to the left or right of the fixation cross.</p>',
+                '<p> When you click "Next" below, you will be shown an example of a trial. You do not need to do anything except keep your eyes fixed on the fixation cross in the center. In a few seconds, the example will end and you will be given more instructions.</p>'
+                ],
+                show_clickable_nav: true,
+                data: {trialType: 'instructions_1'}
+
+            };
+        }
+        
+        function example_1(){
+            return {
+                type: 'RDK-BM',
+                n_dots_array: [600],
+                coherence_array: [1],
+                stimulus_side_array: ['left'],
+                coherent_direction_array: [0],
+                aperture_type: apertureType, //4 is rectangle
+                aperture_height: apertureHeight,
+                aperture_width: apertureWidth,
+                aperture_center_x: function(){
+                    return window.innerWidth/2;
+                },
+                aperture_center_y: function(){
+                    return window.innerHeight/2;
+                },
+                preStim_dur_in_ms: preStimDur_inMS,
+                data: {trialType: 'example_1'}
+            };
+        }
+        
+        function instructions_2(){
+            return {
+                type: 'instructions',
+                pages: [
+                '<p> Good job!</p><p>Did you notice which side of the fixation cross the coherent dots were?</p><p>Did you notice in which direction the coherent dots were moving towards?</p>',
+                '<p> It is okay if you did not catch it. We will run the example once again.</p><p>This time look at the fixation cross but also pay attention to the area to the left of the screen. Soon after the trial begins, you should notice the coherent dots moving to the right.</p>',
+                '<p> Just to reiterate, your task is not to determine the direction the coherent dots are moving in, but to determine <i>which side of the fixation cross</i> the coherent dots occurred (i.e. you can ignore the direction of movement).</p><p>When you click "Next" below, the same example will be replayed. Remember to pay attention to the area to the left of the cross while looking at the cross. You will be given more instructions after the example.</p>'
+                ],
+                show_clickable_nav: true,
+                data: {trialType: 'instructions_2'}
+            };
+        }
+        
+        function instructions_3(){
+            return {
+                type: 'instructions',
+                pages: [
+                '<p> Hopefully you managed to notice that the dots on the left of the fixation cross were moving to the right. </p>',
+                '<p> You might have also noticed that the fixation cross changed its color from <span style="color:red"> red </span> to <b>black</b>. This is a cue for you to let us know which side of the fixation cross the coherent dots occurred. This coherent dot motion occurs some time after the trial begins and ends right before the fixation cross turns black.</p>',
+                '<p> If you think the coherent dots occurred to the left of the fixation cross, press the "1" key (above the "Q" key). <br>If you think the coherent dots occurred to the right of the fixation cross, press the "2" key (above the "W" key).</p><p>You can place your index finger and middle finger of your left hand on those keys as this will be the only response for your left hand.</p><p> You can only respond once the fixation cross turns <b>black</b>.</p>',
+                '<p> Once you have pressed either the "1" or "2" keys, the fixation cross will turn <span style="color:gray">gray</span>.</p><p>When this happens, you will have to key in your confidence judgment. This indicates how confident you are in your judgment on which side of the fixation cross the coherent dots occurred.</p>',
+                '<p> The responses for confidence will be the keys "7", "8", "9", and "0". You can place the fingers of your right hand on those keys as that will be the only responses from that hand.</p><p> Here are what the responses mean:</p><p>"7" = Not confident at all &nbsp; <br> "8" = Slightly confident  &nbsp; &nbsp; &nbsp;<br> "9" = Quite confident  &nbsp; &nbsp; &nbsp; &nbsp;<br> "0" = Extremely confident </p><p> Once you have given your confidence response, the fixation cross will turn from gray to white.</p>',
+                '<p> You have only 3 seconds to key in both responses, so you will have to do it quickly. It is important to key in both responses before the time limit runs out.<p></p>You can confirm that you have keyed in both responses in time by observing that the fixation cross turns white in every trial before it turns red again to indicate the start of the following trial.</p>',
+                '<p> That was a lot of information, thank you for sticking with us. Here is a quick recap of what we covered:</p><p>Your job is to judge which side of the fixation cross the coherent dots occurred.</p><p> When the fixation cross turns <b>black</b>, press "1" or "2" to indicate if the coherent dots occurred on the left or right of the fixation cross respectively. Once you indicate this, the fixation cross will turn <span style="color:gray">gray</span>. Now you can indicate your confidence by pressing "7", "8", "9", or "0" ("7" is least confident and "0" is most confident). Once you have given both responses, the fixation cross will turn white until the start of the following trial.</p><p>You have 3 seconds from the time the fixation cross turns <b>black</b> to key in both responses.</p><p> Feel free to click "Previous" to review earlier instructions.</p>',
+                '<p> We understand that this task can be quite challenging, so we have prepared 2 sets of practice trials for you. In the first set, there will be 10 practice trials, and you will be given feedback (at the end of each trial) on whether your judgment on where the coherent dots occurred is correct. You will also receive feedback on whether or not you indicated your confidence judgment in time.</p><p> Remember that once the fixation cross turns <b>black</b>, you have only <b>3 seconds</b> to give both responses before it moves on to the next trial. The fixation cross should turn from black to gray to white before the next trial.</p>',
+                '<p> When you click "Next" below, the first set of 10 practice trials will begin.</p><p>Remember to keep your eyes on the center of the fixation cross. Use these 10 practice trials to familiarize yourself with the task.</p><p>. This task is meant to be difficult, and if you are unsure of where the coherent dots occurred, just take your best guess.</p>'
+                ],
+                show_clickable_nav: true,
+                data: {trialType: 'instructions_3'}
+            };
+        }
+        
+        function practice_1(){
+            
+            //Create the random variables
+            let factors_p1 = {
+                coherences: [1, 0.9, 0.8, 0.7, 0.6],
+                stimulusSide:['left','right'],
+            };
+                
+            let trialInput_p1 = jsPsych.randomization.factorial(factors_p1, 1, 1);
+            
+            let coherentDirection_p1 = jsPsych.randomization.repeat([0,180], 5);
+            
+            let nDots_p1 = jsPsych.randomization.sampleWithReplacement([200, 600, 1000], 10);
+            
+            //For loop that pushes each practice trial and feedback trial into the array
+            let p1_array = [];
+            
+            for (var i = 0; i < 10; i++){
+                
+                //RDK trial
+                let RDK_p1= {
+                    type: 'RDK-BM',
+                    n_dots_array: [nDots_p1[i]],
+                    coherence_array: [trialInput_p1.coherences[i]],
+                    stimulus_side_array: [trialInput_p1.stimulusSide[i]],
+                    coherent_direction_array: [coherentDirection_p1[i]],
+                    aperture_type: apertureType,
+                    aperture_height: apertureHeight,
+                    aperture_width: apertureWidth,
+                    aperture_center_x: function(){
+                        return window.innerWidth/2;
+                    },
+                    aperture_center_y: function(){
+                        return window.innerHeight/2;
+                    },
+                    preStim_dur_in_ms: preStimDur_inMS,
+                    data: {trialType: 'practice_1'}
+                };
+                
+                //Feedback trial
+                let feedback_p1 = {
+                    type: 'html-keyboard-response',
+                    stimulus: function(){
+                        //Get the data of the last trial
+                        let data = jsPsych.data.getLastTrialData();
+                        
+                        var message = '';
+                        
+                        //First response
+                        let correct = JSON.parse(jsPsych.data.get().last(1).values()[0].correctOrNotArray)[0];
+                        
+                        console.log("CORRECT: " + correct);
+                        
+                        if(correct === 1){
+                            message += '<h1 style="color:green"> Correct Left/Right response! </h1>';
+                        }
+                        else if(correct === -1){
+                            message += '<h1 style="color:red"> Incorrect Left/Right response! </h1>';
+                        }
+                        else if(correct === 0){
+                            message += '<h1 style="color:red"> No response entered! </h1><p>Remember to respond when the fixation cross turns black.</p>';
+                        }
+                        
+                        message += "<br><br>";
+                        
+                        //Second response
+                        let responded = JSON.parse(jsPsych.data.get().last(1).values()[0].confRespOrNotArray)[0];
+                        
+                        console.log("RESPONDED: " + responded);
+                        
+                        if(responded === 1){
+                            message += '<h1 style="color:green"> Confidence response successfully recorded! </h1>';
+                        }
+                        else if(responded === 0){
+                            message += '<h1 style="color:red"> No confidence response recorded! </h1><p>Remember to rate confidence when the fixation cross turns gray.</p>';
+                        }
+                        
+                        return message;
+                    },
+                    choices: jsPsych.NO_KEYS,
+                    prompt: "",
+                    trial_duration: feedbackTime,
+                    data: {
+                        trialType: 'feedback_1',
+                        key_press: 0
+                        },
+                    on_finish: function(){
+                        jsPsych.data.get().addToLast({rt: 0});
+                    }
+                };
+                
+                //Push the pair into the p1 array
+                p1_array.push(RDK_p1);
+                p1_array.push(feedback_p1);
+                
+            }//End of for loop
+                
+            return {
+                type: 'html-keyboard-response',
+                timeline: p1_array
+            };
+        }
+        
+        function instructions_4(){
+            return {
+                type: 'instructions',
+                pages: [
+                '<p> Well done on the first set of practice trials!<p></p>We hope you managed to familiarize yourself to the task somewhat.</p> ',
+                '<p> The next set will have 6 practice trials. These practice trials will be exactly like the previous set, except there will be no feedback given.</p><p>The flow of actual experiment will be exactly like these trials. Note that there will be no breaks in between the trials.</p>',
+                '<p> Remember to keep your eyes fixed on the fixation cross, and to key in both responses within the 3 seconds. You should see the fixation cross turn white before the next trial. </p><p>Whenever you are ready, click "Next" below to start the second set of 6 practice trials.</p>'
+                ],
+                show_clickable_nav: true,
+                data: {trialType: 'instructions_4'}
+            };
+        }
+        
+        function practice_2(){
+            
+            //Create the random variables
+            let coherences_p2 = jsPsych.randomization.repeat([1, 0.9, 0.8, 0.7, 0.6, 0.4], 1);
+            let stimulusSide_p2 = jsPsych.randomization.repeat(['left','right'], 3);
+            let coherentDirection_p2 = jsPsych.randomization.repeat([0,180], 3);
+            let nDots_p2 = jsPsych.randomization.repeat([200, 600, 1000], 2);
+            
+            //For loop that pushes each practice trial and feedback trial into the array
+            let p1_array = [];
+                
+            //Return the RDK trial
+            return {
+                type: 'RDK-BM',
+                n_dots_array: nDots_p2,
+                coherence_array: coherences_p2,
+                stimulus_side_array: stimulusSide_p2,
+                coherent_direction_array: coherentDirection_p2,
+                aperture_type: apertureType,
+                aperture_height: apertureHeight,
+                aperture_width: apertureWidth,
+                aperture_center_x: function(){
+                    return window.innerWidth/2;
+                },
+                aperture_center_y: function(){
+                    return window.innerHeight/2;
+                },
+                preStim_dur_in_ms: preStimDur_inMS,
+                data: {trialType: 'practice_2'}
+            };
+        }
+        
+        function instructions_5(){
+            return {
+                type: 'instructions',
+                pages: [
+                '<p> Well done!</p></p>You are now done with all the practice trials! Hopefully you\'re familiar with the task now.</p> ',
+                '<p>Feel free to take a 1-minute break to rest your eyes. This experiment will take around 30 minutes to complete. You will be given a break every 10 minutes or so.</p>',
+                '<p> Whenever you are ready, click "Next" below to start the actual experiment.</p>'
+                ],
+                show_clickable_nav: true,
+                data: {trialType: 'instructions_5'}
+            };
+        }
+        
+        function exp_block_1(){
+            return {
+                type: 'RDK-BM',
+                n_dots_array: nDots_array_1,
+                coherence_array: coherence_array_1,
+                stimulus_side_array: stimulusSide_array_1,
+                coherent_direction_array: coherentDirection_array_1,
+                aperture_type: apertureType, //4 is rectangle
+                aperture_height: apertureHeight,
+                aperture_width: apertureWidth,
+                aperture_center_x: function(){
+                    return window.innerWidth/2;
+                },
+                aperture_center_y: function(){
+                    return window.innerHeight/2;
+                },
+                preStim_dur_in_ms: preStimDur_inMS,
+                data: {trialType: 'exp_block_1'}
+            };
+        }
+        
+        function rest_block_1(){
+            return {
+                type: 'html-keyboard-response',
+                stimulus: '<p>Great job! You\'re 1/3 of the way there!</p><p>Feel free to take a 1-minute break to rest your eyes.</p>',
+                choices: [32],
+                prompt: "<p>Once you are ready, press the spacebar to continue to the next third of trials.</p>",
+                data: {trialType: 'rest_block_1'}
+            };
+        }
+        
+        function exp_block_2(){
+            return {
+                type: 'RDK-BM',
+                n_dots_array: nDots_array_2,
+                coherence_array: coherence_array_2,
+                stimulus_side_array: stimulusSide_array_2,
+                coherent_direction_array: coherentDirection_array_2,
+                aperture_type: apertureType, //4 is rectangle
+                aperture_height: apertureHeight,
+                aperture_width: apertureWidth,
+                aperture_center_x: function(){
+                    return window.innerWidth/2;
+                },
+                aperture_center_y: function(){
+                    return window.innerHeight/2;
+                },
+                preStim_dur_in_ms: preStimDur_inMS,
+                data: {trialType: 'exp_block_2'}
+            };
+        }
+        
+        function rest_block_2(){
+            return {
+                type: 'html-keyboard-response',
+                stimulus: '<p>Great job! You\'re 2/3 of the way there!</p><p>Feel free to take a 1-minute break to rest your eyes.</p>',
+                choices: [32],
+                prompt: "<p>Once you are ready, press the spacebar to continue to the next third of trials.</p>",
+                data: {trialType: 'rest_block_2'}
+            };
+        }
+        
+        function exp_block_3(){
+            return {
+                type: 'RDK-BM',
+                n_dots_array: nDots_array_3,
+                coherence_array: coherence_array_3,
+                stimulus_side_array: stimulusSide_array_3,
+                coherent_direction_array: coherentDirection_array_3,
+                aperture_type: apertureType, //4 is rectangle
+                aperture_height: apertureHeight,
+                aperture_width: apertureWidth,
+                aperture_center_x: function(){
+                    return window.innerWidth/2;
+                },
+                aperture_center_y: function(){
+                    return window.innerHeight/2;
+                },
+                preStim_dur_in_ms: preStimDur_inMS,
+                data: {trialType: 'exp_block_3'}
+            };
+        }
+        
+        
+        
+        //-------- Trial-Making --------
+        
+        //Creates a consent form trial and returns it
+        function createConsentFormBlock(){
+
+            return {
+                type:'external-html',
+                url: "consentForm.html",
+                cont_btn: "startExperimentButton",
+                check_fn: check_consent
+            };
+        }
+        
+        //Create trial to generate completion code, and check if they've earned a bonus on this session
+        function createCompletionCodeBlock(){
+        	
+         return {
+             type: 'html-keyboard-response',
+             stimulus: '<center><p class="loader" style="margin-top: 20%">Loading...</p></center>',
+             timing_response: 1,
+             trial_duration: 10,
+	            //display_element: $('#vert-center'),
+	            on_finish: function(data)
+	            {
+	                // Create completionCode and check if it exists in the database. Keep running until a unique one is generated
+	                completionCode = Math.floor(Math.random() * 9000000 + 1000000); 
+	                checkID(false, completionCode, 'completion_code', tableName, function(exists){getNewSubID(exists);}); 
+                    
+                    //Add in artificial rt to fill in the column in the database
+                    jsPsych.data.get().addToLast({rt: 0});
+                    jsPsych.data.get().addToLast({key_press: 0});	            },
+                    timing_post_trial: 0
+                };
+            }
+            
+        //Create trial to thank the participate, tell them about their bonus, and display their completionCode completion code
+        function createGoodbyeBlock(){
+        	
+         return {
+             type: 'html-button-response',
+             stimulus: function()
+             {
+                 var output = '<p class="instructions">You are done with the experiment! Thank you for participating!</p>';
+                 var data = jsPsych.data.get().last(1).values()[0];
+                 var completionCode = data.completion_code;
+                 
+	                // Display completionCode completion code
+	                output += '<p class="instructions"> Your survey code is: <strong>'+ completionCode + '</strong></p>' +
+                 '<p class="instructions">Please paste this number back into the box at the mTurk HIT website.</p>' +
+                 '<p class="instructions"><i>Do <b>NOT</b> close this window until you have submitted the above code.</i></p>';
+                 
+                 return output;
+             },
+             choices: ['I have submitted the code. Exit the experiment.'],
+             timing_post_trial: 0
+         };
+     }
+     
+        //-------- Functionality --------
+        
+        // Function to draw parameters from the URL
+        function $_GET(param) 
+        {
+            var vars = {};
+            window.location.href.replace( 
+                /[?&]+([^=&]+)=?([^&]*)?/gi, // regexp
+                function( m, key, value ) { // callback
+                    vars[key] = value !== undefined ? value : '';
+                }
+                );
+
+            if ( param ) 
+            {
+                console.log(vars);
+                console.log(param);
+                return vars[param] ? vars[param] : null;    
+            }
+            return vars;
+        }
+        
+        // Function to check compare the inputted ID to all IDs of the IDType in the SQL database
+        function checkID(async, ID, IDType, data_table, callback)
+        {
+            $.ajax({
+                type:'post',
+                cache: false,
+                async: async,
+                url: 'checkSubID.php',
+                data: // Inputs into the .php script
+                {
+                    ID: ID,
+                    IDType: IDType,
+                    completeTrials: 3450,
+                    data_table: data_table
+                },
+                success: function(exists)  // Use whatever callback function is specified when calling the checkID function
+                {
+                    callback(exists);
+                },
+                error: function (xhr, ajaxOptions, thrownError) 
+                {
+                   alert(thrownError);
+               }
+           });
+        }
+        
+        // Callback function for checking if the completionCode exists
+        function getNewSubID(exists)
+        {
+            if (exists === '1' || exists === 1) // If the completionCode exists in the SQL database
+            {
+                completionCode = Math.floor(Math.random() * 9000000 + 1000000); // Generate new completionCode
+                checkID(false, completionCode, 'completion_code', tableName, function(existsNow){getNewSubID(existsNow);}); // Check if the new completionCode exists in the database
+            }
+            else // If the completionCode doesn't exist in the SQL database
+                jsPsych.data.addProperties({completion_code: completionCode}); // Add the completionCode to the data 
+        }
+        
+        //A function to save the data to the SQL table on the server.  This gets called at the end of the file.
+        function save_data(data_table,data){
+          
+            //Add data to the jsPsych data file
+            jsPsych.data.addProperties({
+                workerId: workerId,
+                assignmentId: assignmentId,
+                hitId: hitId
+            });
+            
+            //Use AJAX to post the data onto the server
+            $.ajax({
+                type:'post',
+                cache: false,
+                url: 'savedata.php',
+                data: {
+                    table: data_table,
+                    json: JSON.stringify(data),
+                },
+                success: function(output) { console.log(output); } // write the result to javascript console
+            });
+        }
+        
+        // sample function that might be used to check if a subject has given
+        // consent to participate.
+        function check_consent(elem) {
+          if ($('#consent_checkbox').is(':checked')) {
+            return true;
+        }
+        else {
+            alert("If you wish to participate, you must check the box next to the statement 'I agree to participate in this study.'");
+            return false;
+        }
+        return false;
+    };
+
+
+</script>
+</html>
