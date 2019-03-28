@@ -30,7 +30,7 @@ jsPsych.plugins.instructions = (function() {
       key_forward: {
         type: jsPsych.plugins.parameterType.KEYCODE,
         pretty_name: 'Key forward',
-        default: 'rightarrow',
+        default: '',//[sivaHack]
         description: 'The key the subject can press in order to advance to the next page.'
       },
       key_backward: {

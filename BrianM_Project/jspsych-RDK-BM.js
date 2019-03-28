@@ -155,7 +155,14 @@ jsPsych.plugins["RDK-BM"] = (function() {
 				pretty_name: "Border Color",
 				default: 1,
 				description: "The color of the border"
+			},
+			visible_circle: {
+				type: jsPsych.plugins.parameterType.BOOL,
+				pretty_name: "visible_circle",
+				default: false,
+				description: "visible_circle"
 			}
+		
 		}
 	}
 
@@ -187,6 +194,7 @@ jsPsych.plugins["RDK-BM"] = (function() {
 		trial.border = assignParameterValue(trial.border, false);
 		trial.border_width =  assignParameterValue(trial.border_width, 1);
 		trial.border_color = assignParameterValue(trial.borderColor, "black");
+		trial.visible_circle = assignParameterValue(trial.visible_circle, false);
 		
 		
 		//For square and circle, set the aperture height == aperture width
@@ -267,6 +275,9 @@ jsPsych.plugins["RDK-BM"] = (function() {
 		var borderThickness = trial.border_thickness; //The width of the border in pixels
 		var borderWidth = trial.border_width;
 		var borderColor = trial.border_color; //The color of the border
+		
+		
+		var visibleCircle = trial.visible_circle; //To display or not to display the circle
 
 
 
@@ -342,6 +353,7 @@ jsPsych.plugins["RDK-BM"] = (function() {
 		var correctOrNotArray = [];
 		var confRespOrNotArray = [];
 		var confRespOrNot_flag = 0;//Per trial
+		var points = 0;
 		
 		var avgFrameTimeArray = [];
 		var tempFrameTime = [];
@@ -451,7 +463,8 @@ jsPsych.plugins["RDK-BM"] = (function() {
 				"border_thickness": trial.border_thickness,
 				"border_color": trial.border_color,
 				"canvas_width": canvasWidth,
-				"canvas_height": canvasHeight
+				"canvas_height": canvasHeight,
+				"points": points
 				
 			}
 			
@@ -514,8 +527,8 @@ jsPsych.plugins["RDK-BM"] = (function() {
 			for (var i = 0; i < nDots; i++) {
 				var dot = dotArray[i]; //Load the current dot into the variable for easy handling
 				
-		      //Generate a random value
-		      var randomValue = Math.random();
+		    	//Generate a random value
+		    	var randomValue = Math.random();
 
 				//Update based on the dot's update type
 				if (dot.updateType == "random direction") {
@@ -670,6 +683,22 @@ jsPsych.plugins["RDK-BM"] = (function() {
 		    	}//End of if square or rectangle
 		      
 		    }//End of if border === true
+    
+		    //Draw the circle if we want it
+		    if(visibleCircle === true){
+		    	ctx.lineWidth = 1;
+		    	ctx.strokeStyle = "gray";
+		    	ctx.beginPath();
+		    	ctx.ellipse(stimulusLeftX, stimulusLeftY, stimulusRadius+(1/2), stimulusRadius+(1/2), 0, 0, Math.PI*2);
+		    	ctx.stroke();
+		    	
+		    	
+		    	ctx.lineWidth = 1;
+		    	ctx.strokeStyle = "gray";
+		    	ctx.beginPath();
+		    	ctx.ellipse(stimulusRightX, stimulusRightY, stimulusRadius+(1/2), stimulusRadius+(1/2), 0, 0, Math.PI*2);
+		    	ctx.stroke();
+		    }//End of if visibleCircle === true
       
 		}//End of draw
 
@@ -987,18 +1016,20 @@ jsPsych.plugins["RDK-BM"] = (function() {
 			   (stimulusLocation === 'right' && response == 'right')){
 				//Place a 1
 				correctOrNotArray[trialCounter-1] = 1;
+				points += 1;
 			}
-			//Else if they got it wrong (-1)
+			//Else if they got it wrong (0)
 			else if((stimulusLocation === 'left'  && response == 'right') || 
 					(stimulusLocation === 'right' && response == 'left')){
 				//Place a -1
-				correctOrNotArray[trialCounter-1] = -1;
+				correctOrNotArray[trialCounter-1] = 0;
 				
 			}
-			//Else they did not respond (0)
+			//Else they did not respond (-1)
 			else{
 				//Place a 0
-				correctOrNotArray[trialCounter-1] = 0;
+				correctOrNotArray[trialCounter-1] = -1;
+				points -= 1;
 				
 			}
 		}
@@ -1007,10 +1038,14 @@ jsPsych.plugins["RDK-BM"] = (function() {
 		function confRespOrNot(){
 			
 			console.log("confRespOrNot_flag: " + confRespOrNot_flag);
-			
-			confRespOrNotArray[trialCounter-1] = confRespOrNot_flag;
-			
-			console.log(confRespOrNotArray);
+			if(confRespOrNot_flag){
+				confRespOrNotArray[trialCounter-1] = 1;
+				points += 1;
+			}
+			else{
+				confRespOrNotArray[trialCounter-1] = -1;
+				points -= 1;
+			}
 			
 			//Reset the confResp flag for next trial
 			confRespOrNot_flag = 0;

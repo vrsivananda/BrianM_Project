@@ -46,18 +46,18 @@ for i = 1:numberOfSubjects
     Alldata.data.esa = esa;
     data = Alldata.data;
     
-    fileName = [pwd '/Data/structure_data_' subjectId '.mat'];
+    fileName = [pwd '/newData/structure_data_' subjectId '.mat'];
     disp(fileName);
     save(fileName,'data');
     
-    % Check if the data should be discarded
-    [discarded, discardSubject] = checkDiscard(esa, sa, discarded);
-    
-    if(discardSubject)
-        continue;
-    end
-    
-    coherenceData = getCoherenceData(esa, coherenceData);
+%     % Check if the data should be discarded
+%     [discarded, discardSubject] = checkDiscard(esa, sa, discarded);
+%     
+%      if(discardSubject)
+%          continue;
+%      end
+%      
+%      coherenceData = getCoherenceData(esa, coherenceData);
     
     
     
