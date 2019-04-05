@@ -28,7 +28,7 @@
         //Data switches
         var saveLocally = 0;	// 0: Nothing.      1: Download CSV file
         var displayData = 0;  	// 0: Nothing.      1: Display data on browser
-        var launchOnline = 1;	// 0: Nothing.		1: Save to database, consent form, completion code generation, dummy variables created for all 3 IDs
+        var launchOnline = 0;	// 0: Nothing.		1: Save to database, consent form, completion code generation, dummy variables created for all 3 IDs
         var tableName = 'BrianM_Project'; //Name of the table in the database
         
         
@@ -67,7 +67,6 @@
         var apertureWidth = 800;
         var apertureHeight = 400;
         var feedbackTime = null;//null is indefinitely
-        var exampleTrialDuration = 4000;
         
         var coherentDirectionMotion = 270;//270 is downwards
         
@@ -95,7 +94,7 @@
         
         
         var timeline = []; //Keep this
-        timeline.push(fullscreen());
+/*        timeline.push(fullscreen());
         timeline.push(instructions_eg1());
         timeline.push(example_1());
         timeline.push(instructions_eg2());
@@ -107,7 +106,7 @@
         timeline.push(instructions_p3());
         timeline.push(practice_3());
         timeline.push(instructions_exp());
-        timeline.push(exp_block_array[0]);
+*/        timeline.push(exp_block_array[0]);
         timeline.push(rest_block_array[0]);
         timeline.push(exp_block_array[1]);
         timeline.push(rest_block_array[1]);
@@ -171,9 +170,8 @@
                 
                 var trialInput = jsPsych.randomization.factorial(factors, repetitions, unpack);
                 
-                console.log(trialInput);
-                
                 trialInput.nDots = jsPsych.randomization.repeat(nDotsArray[i], 50);
+                trialInput.nDots[0] = 200;
                 
                 tempArray.push({
                     type: 'RDK-BM',
@@ -209,7 +207,9 @@
             } //End of for loop
             
             //Return the temp Array
-            return jsPsych.randomization.repeat(tempArray,1);
+            tempArray =  jsPsych.randomization.repeat(tempArray,1);
+            console.log(tempArray);
+            return tempArray;
             
         }//End of makeExperimentTrialsArray
         
@@ -261,7 +261,7 @@
                 type: 'instructions',
                 pages: [
                 '<p> Thank you for agreeing to participate in our experiment! </p><p>Before we give you the instructions, we would like to reiterate from the consent form that:</p><p>(1) You will be compensated $4 for the completion of the study<br>(2) The study will last a little under one hour<br>(3) We reserve the right to terminate your session at any time<br>(4) If we terminate your session, you will be paid for the total amount of time you participated at a rate of $4/hour, up to one hour total.</p><p> Click "Next" below if you understand and agree to these terms. </p>',
-                '<p> It is imperative for you to understand the task in order for this experiment to work. As such, we will be monitoring how well you do the task. If your performance indicates that you do not understand the task or are not paying attention, we will terminate the experiment.</p><p> If we terminate the experiment, you should <b>not</b> submit the assignment. <span style="color:red"><i>We will reject the assignment if you submit the assignment after termination.</i></span> Instead, you will be given more instructions on how to receive compensation from us. We will then compensate you manually through mTurk.</p>',
+                '<p> It is imperative for you to understand the task in order for this experiment to work. As such, we will be monitoring how well you do the task. If your performance indicates that you do not understand the task or are not paying attention, we will terminate the experiment.</p><p> If we terminate the experiment, you should <b>not</b> submit the assignment. <i>We will reject the assignment if you submit the assignment after termination.</i> Instead, you will be given more instructions on how to receive compensation from us. We will then compensate you manually through mTurk.</p>',
                 '<p> In this experiment, you be shown dots moving on the screen. In the middle of the screen will be a fixation cross. During the entire experiment, you will keep your eyes fixed on the fixation cross.</p>',
                 '<p> As you keep your gaze fixed on the fixation cross in the center of the screen, dots will be moving on the screen randomly. At a certain point, some of the dots will very briefly move coherently downwards (like a waterfall). This downward motion will occur either to the left or to the right of the fixation cross.</p> <p>Your job is to judge whether the coherent downward motion occurs to the left or right of the fixation cross.</p>',
                 '<p> When you click "Next" below, you will be shown a modified example of a trial.</p><p>After a few seconds of stimulus presentation, two gray circles will show up on the left and right sides of the fixation cross to indicate the two locations where the coherent downward-moving dots could occur. Keep your eyes on the fixation cross but pay attention to the circles, as the coherent downward dots will be presented only very briefly (half a second). </p><p>The example will end by itself and you will be given more instructions.</p>'
@@ -275,7 +275,6 @@
         function example_1(){
             return {
                 type: 'RDK-BM',
-                trial_duration: exampleTrialDuration,
                 n_dots_array: [1000],
                 coherence_array: [1],
                 stimulus_side_array: ['left'],
@@ -312,7 +311,6 @@
         function example_2(){
             return {
                 type: 'RDK-BM',
-                trial_duration: exampleTrialDuration,
                 n_dots_array: [1000],
                 coherence_array: [1],
                 stimulus_side_array: ['right'],
@@ -341,9 +339,9 @@
                 '<p> If you think the downward coherent dots occurred to the left of the fixation cross, press the "1" key (above the "Q" key). <br>If you think the coherent dots occurred to the right of the fixation cross, press the "2" key (above the "W" key).</p><p>You can place your index finger and middle finger of your left hand on those keys as this will be the only response for your left hand.</p><p> You can only respond once the fixation cross turns <b>black</b>.</p>',
                 '<p> Once you have pressed either the "1" or "2" keys, the fixation cross will turn <span style="color:gray">gray</span>.</p><p>When this happens, you will have to key in your confidence judgment. This indicates how confident you are in your judgment on which side of the fixation cross the coherent dots occurred.</p>',
                 '<p> The responses for confidence will be the keys "7", "8", "9", and "0". You can place the fingers of your right hand on those keys as that will be the only responses from that hand.</p><p> Here are what the responses mean:</p><p>"7" = Not confident at all &nbsp; <br> "8" = Slightly confident  &nbsp; &nbsp; &nbsp;<br> "9" = Quite confident  &nbsp; &nbsp; &nbsp; &nbsp;<br> "0" = Extremely confident </p><p>Make sure that you are aware that your index finger gives the lowest confidence, and your pinky finger gives the highest confidence.</p><p> Once you have given your confidence response, the fixation cross will turn from gray to white.</p>',
-                /*'<p> You have only 3 seconds to key in both responses, so you will have to do it quickly. It is important to key in both responses before the time limit runs out.</p>*/'<p>You can confirm that you have keyed in both responses in time by observing that the fixation cross turns white in every trial before it turns red again to indicate the start of the following trial.</p>',
-                '<p> That was a lot of information, thank you for sticking with us. Here is a quick recap of what we covered:</p><p>Your job is to judge which side of the fixation cross the coherent dots occurred.</p><p> When the fixation cross turns <b>black</b>, press "1" or "2" to indicate if the coherent dots occurred on the left or right of the fixation cross respectively. Once you indicate this, the fixation cross will turn <span style="color:gray">gray</span>. Now you can indicate your confidence by pressing "7", "8", "9", or "0" ("7" is least confident and "0" is most confident). Once you have given both responses, the fixation cross will turn white until the start of the following trial.</p>'+/*<p>You have 3 seconds from the time the fixation cross turns <b>black</b> to key in both responses.</p>*/'<p> Feel free to click "Previous" to review earlier instructions.</p>',
-                '<p> We understand that this task can be quite challenging, so we have prepared 3 sets of practice trials for you. In the first set, there will be 6 practice trials, and you will be given feedback on your performance at the end of each trial. </p><p>In the first set of practice trials, the gray circle will be present to help guide your attention. It is imperative that you <i>do not look at the gray circle</i> and keep your eyes fixed on the fixation cross. This is because the actual experiment will not have a gray circle to guide you.</p><p>'+/*Remember that once the fixation cross turns <b>black</b>, you have only <b>3 seconds</b> to give both responses before it moves on to the next trial.*/ 'Remember that the fixation cross should turn from black to gray to white before the next trial. We have implemented a point-system to measure your performance, and this will be explained after the first set of practice trials.</p>',
+                '<p> You have only 3 seconds to key in both responses, so you will have to do it quickly. It is important to key in both responses before the time limit runs out.<p></p>You can confirm that you have keyed in both responses in time by observing that the fixation cross turns white in every trial before it turns red again to indicate the start of the following trial.</p>',
+                '<p> That was a lot of information, thank you for sticking with us. Here is a quick recap of what we covered:</p><p>Your job is to judge which side of the fixation cross the coherent dots occurred.</p><p> When the fixation cross turns <b>black</b>, press "1" or "2" to indicate if the coherent dots occurred on the left or right of the fixation cross respectively. Once you indicate this, the fixation cross will turn <span style="color:gray">gray</span>. Now you can indicate your confidence by pressing "7", "8", "9", or "0" ("7" is least confident and "0" is most confident). Once you have given both responses, the fixation cross will turn white until the start of the following trial.</p><p>You have 3 seconds from the time the fixation cross turns <b>black</b> to key in both responses.</p><p> Feel free to click "Previous" to review earlier instructions.</p>',
+                '<p> We understand that this task can be quite challenging, so we have prepared 3 sets of practice trials for you. In the first set, there will be 6 practice trials, and you will be given feedback on your performance at the end of each trial. </p><p>In the first set of practice trials, the gray circle will be present to help guide your attention. It is imperative that you <i>do not look at the gray circle</i> and keep your eyes fixed on the fixation cross. This is because the actual experiment will not have a gray circle to guide you.</p><p>Remember that once the fixation cross turns <b>black</b>, you have only <b>3 seconds</b> to give both responses before it moves on to the next trial. The fixation cross should turn from black to gray to white before the next trial. We have implemented a point-system to incentivize you to give both responses before the fixation cross turns white, and this will be explained after the first set of practice trials.</p>',
                 '<p> When you click "Next" below, the first set of 6 practice trials will begin.</p><p>Remember to keep your eyes on the center of the fixation cross. Use these 6 practice trials to familiarize yourself with the task.</p><p>This task is meant to be difficult, and if you are unsure of where the coherent dots occurred, just take your best guess.</p>'
                 ],
                 show_clickable_nav: true,
@@ -463,9 +461,9 @@
                 pages: [
                 '<p> Well done on the first set of practice trials!<p></p>We hope you managed to familiarize yourself to the task somewhat.</p> ',
                 '<p> The next set will have 10 practice trials. These practice trials will be exactly like the previous set, except there will be no gray circles to help you.</p><p>The actual experiment will also not have any gray circles.</p>',
-                '<p> In this block, we will also introduce a point system to determine your performance.</p><p>If your first (left/right) response is <span style="color:green">correct</span>, you get <span style="color:green">1 point</span>. If it is <b>wrong</b>, you get <b>0 points</b>. '+/*However, if you <span style="color:red">fail to respond</span>, you get <span style="color:red">-1 points</span>.*/'</p><p>For your second response (confidence judgment), there is no correct answer. Thus, if you <span style="color:green">respond</span>, you get <span style="color:green">1 point</span>.'+/*' If you <span style="color:red">do not respond</span>, you get <span style="color:red">-1 points</span>.</p><p>Thus to maximize your points, it is in your interest to respond to both questions within each trial.*/'</p>',
+                '<p> In this block, we will also introduce a point system to determine your performance.</p><p>If your first (left/right) response is <span style="color:green">correct</span>, you get <span style="color:green">1 point</span>. If it is <b>wrong</b>, you get <b>0 points</b>. However, if you <span style="color:red">fail to respond</span>, you get <span style="color:red">-1 points</span>.</p><p>For your second response (confidence judgment), there is no correct answer. Thus, if you <span style="color:green">respond</span>, you get <span style="color:green">1 point</span>. If you <span style="color:red">do not respond</span>, you get <span style="color:red">-1 points</span>.</p><p>Thus to maximize your points, it is in your interest to respond to both questions within each trial.</p>',
                 /*'<p> These trials also serve as a test. This experiment will only work if you understand the task. As such, you will need to make at least 7 correct left/right judgments to continue to the actual experiment. If you do not succeed in getting this number of left/right judgments correct, the task will end and you will be given more instructions on getting compensation from us.</p>',
-                */'<p> Remember to keep your eyes fixed on the fixation cross'+/*, and to key in both responses within the 3 seconds to maximize your points*/'. You should see the fixation cross turn white before the next trial. </p><p>Whenever you are ready, click "Next" below to start the second set of 10 practice trials.</p>'
+                */'<p> Remember to keep your eyes fixed on the fixation cross, and to key in both responses within the 3 seconds to maximize your points. You should see the fixation cross turn white before the next trial. </p><p>Whenever you are ready, click "Next" below to start the second set of 10 practice trials.</p>'
                 ],
                 show_clickable_nav: true,
                 data: {trialType: 'instructions_p2'}
@@ -600,14 +598,14 @@
                     if(points_p2_LR >= points_p2_LR_threshold){
                         return [
                         '<p> Well done!</p></p>You are done with 2/3 of the practice trials! Hopefully you\'re somewhat familiar with the task and point system now.</p> ',
-                        '<p>The next set of 6 practice trials will be exactly like the main experiment.</p>'+/*<p>There will be no feedback given, and the trials will move from one trial to another by itself. Note that there will be no pause in between trials.</p><p>In addition, i*/'<p>In most trials, not all of the dots in the circle will move downwards in a coherent manner. The number of dots that move coherently downwards can be anywhere from 100% of dots (easy trials) to 20% (difficult trials). </p>',
+                        '<p>The next set of 6 practice trials will be exactly like the main experiment.</p><p>There will be no feedback given, and the trials will move from one trial to another by itself. Note that there will be no pause in between trials.</p><p>In addition, in most trials, not all of the dots in the circle will move downwards in a coherent manner. The number of dots that move coherently downwards can be anywhere from 100% of dots (easy trials) to 20% (difficult trials). </p>',
                         '<p> As usual, keep your eyes on the fixation cross for the entire duration of the trial. If you are unsure of which side of the fixation cross the coherent downward-moving dots occured, just take your best guess.</p><p>Remember that this task is meant to be difficult, so do not be discouraged if you are guessing much of the time.</p><p>Whenever you are ready, click "Next" below to start the next set of 6 practice trials.</p>'
                         ];
                     }
                     //Else we fail
                     else{
                         return [
-                        '<p> Thank you for participating. Unfortunately your score does not allow you to proceed with the experiment. </p><p> Please email <b>ucrNeuralComputation@gmail.com</b> with: <br><br>(1) Your unique ID for this task: <b>' + workerId + ' </b>, and <br>(2) Your own mTurk worker ID <br><br>to receive compensation for your time.</p><p>You have not been provided with the completion code, so please <span style="color:red"><b>do NOT submit the assignment.</span> Do not paste anything in the completion code box on the mTurk website.</b> We will compensate you through a customized Dummy HIT for you only. Please <b>return this assignment</b> so that someone else can do the task. <span style="color:red"><b>If you submit the assignment, we will REJECT the assignment</b></span>.</p><p>Once you have emailed us with the 2 pieces of information listed above, feel free to close this browser window and return the assignment. You do not have to do anything else. We sincerely thank you for your time.</p>'
+                        '<p> Thank you for participating. Unfortunately your score does not allow you to proceed with the experiment. </p><p> Please email <b>ucrNeuralComputation@gmail.com</b> with: <br><br>(1) Your unique ID for this task: <b>' + workerId + ' </b>, and <br>(2) Your own mTurk worker ID <br><br>to receive compensation for your time.</p><p>You have not been provided with the completion code, so please <b>do NOT submit the assignment. Do not paste anything in the completion code box on the mTurk website.</b> We will compensate you through a customized Dummy HIT for you only. Please <b>return this assignment</b> so that someone else can do the task. <b>If you submit the assignment, we will REJECT the assignment</b>.</p><p>Once you have emailed us with the 2 pieces of information listed above, feel free to close this browser window and return the assignment. You do not have to do anything else. We sincerely thank you for your time.</p>'
                         ];
                     }
                 },

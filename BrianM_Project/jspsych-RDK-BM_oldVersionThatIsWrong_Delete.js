@@ -247,9 +247,7 @@ jsPsych.plugins["RDK-BM"] = (function() {
 		var fixationCrossHeight = trial.fixation_cross_height; //The height of the fixation cross in pixels
 		var fixationCrossThickness = trial.fixation_cross_thickness; //The thickness of the fixation cross, must be positive number above 1
 		
-		var nDots = trial.n_dots_array.reduce(function(a, b) {
-			return Math.max(a, b);
-		});; //Number of dots per set (equivalent to number of dots per frame)
+		var nDots = trial.n_dots_array[0]; //Number of dots per set (equivalent to number of dots per frame)
 		var nSets = trial.number_of_sets; //Number of sets to cycle through per frame
 		var coherence; //Proportion of dots to move together, range from 0 to 1
 		var dotRadius = trial.dot_radius; //Radius of each dot in pixels
@@ -312,7 +310,7 @@ jsPsych.plugins["RDK-BM"] = (function() {
 		canvas.style.padding = 0;		
 		
 		//Get the context of the canvas so that it can be painted on.
-		var ctx = canvas.getContext("2d", {alpha: true});//true means opaque
+		var ctx = canvas.getContext("2d");
 
 		//Declare variables for width and height, and also set the canvas width and height to the window width and height
 		var canvasWidth = canvas.width = window.innerWidth;
@@ -342,16 +340,12 @@ jsPsych.plugins["RDK-BM"] = (function() {
 		console.log("nTrials: " + nTrials);
 		var trialCounter = 0;
 		var stimulusSide; //'left' or 'right'
-		var startNextTrial = 1; //Initialize as 1 to start the first trial
 
 		//Variables to control responses
 		var openToLeftRightResponse = 0;
 		var openToConfidenceResponse = 0;
 		var leftRightResponseArray = [];
 		var confidenceResponseArray = [];
-		var leftRightRTArray = [];
-		var confidenceRTArray = [];
-		var rtTimeStamp;
 		//Set up the event listener
 		window.onkeyup = function(e) {
 			keyIsPressed(e);
@@ -399,7 +393,7 @@ jsPsych.plugins["RDK-BM"] = (function() {
 		}
 		
 		//Declare a global timeout ID to be initialized below in animateDotMotion function and to be used in after_response function
-		var timeoutID = setTimeout(function(){end_trial();}, trial.trial_duration);
+		var timeoutID;
 		
 		//Declare global variable to be defined in startKeyboardListener function and to be used in end_trial function
 		var keyboardListener; 
@@ -427,9 +421,6 @@ jsPsych.plugins["RDK-BM"] = (function() {
 		//Function to end the trial proper
 		function end_trial() {
 			
-			//Clear the timeout
-			clearTimeout(timeoutID);
-			
 			//Stop the dot motion animation
 			stopDotMotion = true;
 			
@@ -450,8 +441,6 @@ jsPsych.plugins["RDK-BM"] = (function() {
 				"coherentDirectionArray": JSON.stringify(trial.coherent_direction_array),
 				"leftRightResponseArray": JSON.stringify(leftRightResponseArray),
 				"confidenceResponseArray": JSON.stringify(confidenceResponseArray),
-				"leftRightRTArray": JSON.stringify(leftRightRTArray),
-				"confidenceRTArray": JSON.stringify(confidenceRTArray),
 				"avgFrameTimeArray": JSON.stringify(avgFrameTimeArray),
 				"correctOrNotArray": JSON.stringify(correctOrNotArray),
 				"confRespOrNotArray": JSON.stringify(confRespOrNotArray),
@@ -829,17 +818,15 @@ jsPsych.plugins["RDK-BM"] = (function() {
 	    function monitorStimulus(){
 	    	
 			//If this is the first trial or during the postStim
-			//if(trialCounter === 0 || (!preStimIsOn && !stimulusIsOn && postStimIsOn)){
+			if(trialCounter === 0 || (!preStimIsOn && !stimulusIsOn && postStimIsOn)){
 			  //If the time for the postStim has passed, end the postStim, prepare for the next trial, and start the preStim
-			  //if(trialCounter === 0 || performance.now()-postStimTimeStamp >= postStimDuration){
-			if(startNextTrial){  
+			  if(performance.now()-postStimTimeStamp >= postStimDuration){
 			  	console.log('postStim Ended');
 			  	console.log('preStim Started');
 			  	currentFCColor = fixationCrossColor;
 			  	prepareDotsForNextTrial();
 			  	console.log('nDots: ' + nDots);
 			  	console.log('nDotsArray[trialCounter]: ' + nDotsArray[trialCounter]);
-			  	startNextTrial = 0;
 			  	postStimIsOn = 0;
 			  	preStimIsOn = 1;
 			  	preStimDuration = getPreStimDuration();
@@ -853,18 +840,18 @@ jsPsych.plugins["RDK-BM"] = (function() {
 			  		trialCounter += 1;
 			  		console.log('trialCounter = ' + trialCounter);
 			  	}
-			  
+			  }
 			}
 			//Else if this is during the preStim
 			else if(preStimIsOn && !stimulusIsOn && !postStimIsOn){
-				//If the preStim time has passed, end the preStim and start the stimulus
-				if(performance.now()-preStimTimeStamp >= preStimDuration){
-					console.log('preStim Ended');
-					console.log('stimulus Started');
-					preStimIsOn = 0;
-					stimulusIsOn = 1;
-					stimulusTimeStamp = performance.now();
-				}
+			  //If the preStim time has passed, end the preStim and start the stimulus
+			  if(performance.now()-preStimTimeStamp >= preStimDuration){
+			  	console.log('preStim Ended');
+			  	console.log('stimulus Started');
+			  	preStimIsOn = 0;
+			  	stimulusIsOn = 1;
+			  	stimulusTimeStamp = performance.now();
+			  }
 			}
 			//Else if this is during the stimulus
 			else if(!preStimIsOn && stimulusIsOn && !postStimIsOn){
@@ -878,7 +865,6 @@ jsPsych.plugins["RDK-BM"] = (function() {
 					postStimTimeStamp = performance.now();
 					currentFCColor = leftRightFCColor;
 					openToLeftRightResponse = 1;
-					rtTimeStamp = performance.now();
 				}
 			}
 
@@ -965,9 +951,6 @@ jsPsych.plugins["RDK-BM"] = (function() {
 		    	
 		    	console.log('LeftRight key = ' + key);
 		    	
-		    	//Push in the RT
-		    	leftRightRTArray[trialCounter - 1] = performance.now() - rtTimeStamp;
-		    	
 		    	//Push the response into the array
 		    	if(key === leftResponseKeyCode){
 		    		leftRightResponseArray[trialCounter - 1] = 'left';
@@ -993,9 +976,6 @@ jsPsych.plugins["RDK-BM"] = (function() {
 		    	
 		    	console.log('Confidence key = ' + key);
 		    	
-		    	//Push in the RT
-		    	confidenceRTArray[trialCounter - 1] = performance.now() - rtTimeStamp;
-		    	
 		    	//Change the flag
 				confRespOrNot_flag = 1;
 		    	
@@ -1016,11 +996,9 @@ jsPsych.plugins["RDK-BM"] = (function() {
 		    		console.log('Something wrong here in ConfidenceResponse');
 		    	}
 
-				//Stop listening for confidence responses, change the FC color, and start the next trial
-				openToConfidenceResponse = 0;
-				currentFCColor = remainderFCColor;
-				//Set a lag before the start of the next trial
-				setTimeout(function(){startNextTrial = 1;}, 1000);
+		    	//Stop listening for confidence responses and change the FC color
+		    	openToConfidenceResponse = 0;
+		    	currentFCColor = remainderFCColor;
 		  	}
 		}
 		  //Else there is an error
