@@ -6,7 +6,7 @@ clear;
 close all;
 
 % Create a path to the text file with all the subjects
-path='subjects.txt';
+path='subjects_labMembers.txt';
 % Make an ID for the subject list file
 subjectListFileId=fopen(path);
 % Read in the number from the subject list

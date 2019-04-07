@@ -1,3 +1,28 @@
+17
+workerId_1554523275
+workerId_1554513623
+workerId_1554531845
+workerId_1554510889
+workerId_1554520613
+workerId_1554528660
+workerId_1554546423
+workerId_1554519168
+workerId_1554515242
+workerId_1554511710
+workerId_1554507717
+workerId_1554538770
+workerId_1554511403
+workerId_1554449586
+workerId_1554450607
+workerId_1554466197
+--------------------
+Above this line: 
+-The experiment has been modified to move on only after a response
+-Fixed bug that caused cap on number of dots to be nDots of first trial
+-Subjects unaccounted for (not sure if mTurk or labMembers): 
+(1)workerId_1554523275
+(2)workerId_1554496379
+--------------------
 16
 workerId_1554341343
 workerId_1554348163

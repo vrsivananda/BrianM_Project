@@ -1,3 +1,12 @@
+3
+workerId_1554496379
+workerId_1554533591
+workerId_1554442331
+--------------------
+Above this line: 
+-The experiment has been modified to move on only after a response
+-Fixed bug that caused cap on number of dots to be nDots of first trial
+--------------------
 6
 workerId_1554227928
 workerId_1553833864
