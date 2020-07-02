@@ -10,12 +10,12 @@
    <script src="jspsych-6.0.5/jspsych.js"></script>
    <link href="jspsych-6.0.5/css/jspsych.css" rel="stylesheet" type="text/css"></link>
    <!--Your jsPsych plugins below this line-->
-   
+
    <script src="jspsych-RDK-BM.js"></script>
    <script src="jspsych-instructions.js"></script>
    <script src="jspsych-6.0.5/plugins/jspsych-fullscreen.js"></script>
    <script src="preStimDur_inSecs.js"></script>
-   
+
    <!--Your jsPsych plugins above this line-->
    <script src="jspsych-6.0.5/plugins/jspsych-external-html.js"></script>
    <script src="jspsych-6.0.5/plugins/jspsych-html-keyboard-response.js"></script>
@@ -24,76 +24,76 @@
 <body>
 </body>
 <script>
-    
+
         //Data switches
         var saveLocally = 0;	// 0: Nothing.      1: Download CSV file
         var displayData = 0;  	// 0: Nothing.      1: Display data on browser
-        var launchOnline = 1;	// 0: Nothing.		1: Save to database, consent form, completion code generation, dummy variables created for all 3 IDs
+        var launchOnline = 0;	// 0: Nothing.		1: Save to database, consent form, completion code generation, dummy variables created for all 3 IDs
         var tableName = 'BrianM_Project'; //Name of the table in the database
-        
-        
+
+
         //Get the info from mTurk
         var turkInfo = jsPsych.turk.turkInfo();
-        
+
         //If we're not on mTurk, we create our own values
         if(turkInfo.outsideTurk === true){
-            
+
             // Use the timestamp as a unique id (specific to the second)
             var timestamp = Math.floor(Date.now()/1000);
-            
+
             workerId = "workerId_" + timestamp;
             assignmentId = "assignmentId_" + timestamp;
             hitId = "hitId_" + timestamp;
-            
+
         }
         //Else we're on mTurk and we get the values
         else{
-          
+
             var workerId = turkInfo.workerId;
             var assignmentId = turkInfo.assignmentId;
             var hitId = turkInfo.hitId;
-            
+
         }
-        
+
         //Print out to console to check
         console.log("workerId: " + workerId);
         console.log("assignmentId: " + assignmentId);
         console.log("hitId: " + hitId);
-        
-        
+
+
         //------------------- Your code below this line -------------------
-        
+
         var apertureType = 4;
         var apertureWidth = 800;
         var apertureHeight = 400;
         var feedbackTime = null;//null is indefinitely
         var exampleTrialDuration = 4000;
-        
+
         var coherentDirectionMotion = 270;//270 is downwards
-        
+
         //Points Counter
         points_p2 = 0;
         points_p2_LR = 0;
         points_p2_LR_threshold = 7; //>= this to pass
         points_exp = 0;
-        
+
         //Keep track of blocks completed
         blocks_completed = 0;
-        
-        
+
+
         //Change the Seconds to Milliseconds
         var preStimDur_inMS = [];
         preStimDur_inSecs.forEach(dur_inSecs => {preStimDur_inMS.push(dur_inSecs*1000);});
-        
-        
-        
+
+
+
         //--------------------- Make Exp Trials ---------------------
         //Make an array of experiment trial objects
         var exp_block_array = makeExpBlockArray();
         var rest_block_array = makeRestBlockArray();
         console.log(exp_block_array);
-        
-        
+
+
         var timeline = []; //Keep this
         timeline.push(fullscreen());
         timeline.push(instructions_eg1());
@@ -118,10 +118,10 @@
         timeline.push(exp_block_array[4]);
         timeline.push(rest_block_array[4]);
         timeline.push(exp_block_array[5]);
-        
-        
+
+
         //------------------- Your code above this line -------------------
-        
+
         if(launchOnline){
         	timeline.unshift(createConsentFormBlock())
            timeline.push(createCompletionCodeBlock());
@@ -145,19 +145,19 @@
                 }
             }
         });
-        
-        
+
+
         //==============================
         //========= FUNCTIONS ==========
         //==============================
-        
+
         //Function to make the experiment trial objects
         function makeExpBlockArray(){
-            
+
             var tempArray = [];
-            
+
             nDotsArray = [200, 200, 600, 600, 1000, 1000];
-            
+
             for(var i = 0; i < 6; i++){
                 //Factors to create counterbalanced trials
                 var factors = {
@@ -168,13 +168,13 @@
                 };
                 var repetitions = 5;
                 var unpack = 1;
-                
+
                 var trialInput = jsPsych.randomization.factorial(factors, repetitions, unpack);
-                
+
                 console.log(trialInput);
-                
+
                 trialInput.nDots = jsPsych.randomization.repeat(nDotsArray[i], 50);
-                
+
                 tempArray.push({
                     type: 'RDK-BM',
                     n_dots_array: trialInput.nDots,
@@ -207,32 +207,32 @@
                     }
                 });
             } //End of for loop
-            
+
             //Return the temp Array
             return jsPsych.randomization.repeat(tempArray,1);
-            
+
         }//End of makeExperimentTrialsArray
-        
+
         //Function to make the experiment trial objects
         function makeRestBlockArray(){
-            
+
             var tempArray = [];
-            
+
             for(var i = 0; i < 5; i++){
-                
+
                 let trialType = 'rest_block_' + (i+1);
-                
+
                 tempArray.push({
                     type: 'html-keyboard-response',
                     stimulus: function(){
-                        
+
                         if(points_exp >= 0){
                             var points_color = 'green';
                         }
                         else{
                             points_color = 'red';
                         }
-                        
+
                         return '<p>Great job! You\'re ' + blocks_completed + '/6 of the way there!</p><p>Your score is currently <span style="color:' + points_color + '">' + points_exp + '</span>.</p><p>Feel free to take a 1-minute break to rest your eyes.</p>';
                     },
                     choices: [32],
@@ -240,12 +240,12 @@
                     data: {trialType: trialType}
                 });
             } //End of for loop
-            
+
             //Return the temp Array
             return tempArray;
         }
         //End of makeExperimentTrialsArray
-        
+
         function fullscreen(){
             return {
                 type: 'fullscreen',
@@ -254,15 +254,15 @@
                 button_label: 'Next >'
             };
         }
-        
-        
+
+
         function instructions_eg1(){
             return {
                 type: 'instructions',
                 pages: [
                 '<p> Thank you for agreeing to participate in our experiment! </p><p>Before we give you the instructions, we would like to reiterate from the consent form that:</p><p>(1) You will be compensated $4 for the completion of the study<br>(2) The study will last a little under one hour<br>(3) We reserve the right to terminate your session at any time<br>(4) If we terminate your session, you will be paid for the total amount of time you participated at a rate of $4/hour, up to one hour total.</p><p> Click "Next" below if you understand and agree to these terms. </p>',
                 '<p> It is imperative for you to understand the task in order for this experiment to work. As such, we will be monitoring how well you do the task. If your performance indicates that you do not understand the task or are not paying attention, we will terminate the experiment.</p><p> If we terminate the experiment, you should <b>not</b> submit the assignment. <span style="color:red"><i>We will reject the assignment if you submit the assignment after termination.</i></span> Instead, you will be given more instructions on how to receive compensation from us. We will then compensate you manually through mTurk.</p>',
-                '<p> In this experiment, you will be shown dots moving on the screen. In the middle of the screen will be a fixation cross. During the entire experiment, you will keep your eyes fixed on the fixation cross.</p>',
+                '<p> In this experiment, you be shown dots moving on the screen. In the middle of the screen will be a fixation cross. During the entire experiment, you will keep your eyes fixed on the fixation cross.</p>',
                 '<p> As you keep your gaze fixed on the fixation cross in the center of the screen, dots will be moving on the screen randomly. At a certain point, some of the dots will very briefly move coherently downwards (like a waterfall). This downward motion will occur either to the left or to the right of the fixation cross.</p> <p>Your job is to judge whether the coherent downward motion occurs to the left or right of the fixation cross.</p>',
                 '<p> When you click "Next" below, you will be shown a modified example of a trial.</p><p>After a few seconds of stimulus presentation, two gray circles will show up on the left and right sides of the fixation cross to indicate the two locations where the coherent downward-moving dots could occur. Keep your eyes on the fixation cross but pay attention to the circles, as the coherent downward dots will be presented only very briefly (half a second). </p><p>The example will end by itself and you will be given more instructions.</p>'
                 ],
@@ -271,7 +271,7 @@
 
             };
         }
-        
+
         function example_1(){
             return {
                 type: 'RDK-BM',
@@ -294,8 +294,8 @@
                 visible_circle: true
             };
         }
-        
-        
+
+
         function instructions_eg2(){
             return {
                 type: 'instructions',
@@ -308,7 +308,7 @@
 
             };
         }
-        
+
         function example_2(){
             return {
                 type: 'RDK-BM',
@@ -331,7 +331,7 @@
                 visible_circle: true
             };
         }
-        
+
         function instructions_p1(){
             return {
                 type: 'instructions',
@@ -350,25 +350,25 @@
                 data: {trialType: 'instructions_p1'}
             };
         }
-        
+
         function practice_1(){
-            
+
             //Create the random variables
             let factors_p1 = {
                 coherences: [1],
                 stimulusSide:['left','right'],
                 nDots: [200, 600, 1000]
             };
-                
+
             let trialInput_p1 = jsPsych.randomization.factorial(factors_p1, 1, 1);
-            
+
             let coherentDirection_p1 = jsPsych.randomization.repeat([coherentDirectionMotion], 10);
-            
+
             //For loop that pushes each practice trial and feedback trial into the array
             let p1_array = [];
-            
+
             for (var i = 0; i < 6; i++){
-                
+
                 //RDK trial
                 let RDK_p1= {
                     type: 'RDK-BM',
@@ -389,21 +389,21 @@
                     data: {trialType: 'practice_1'},
                     visible_circle: true
                 };
-                
+
                 //Feedback trial
                 let feedback_p1 = {
                     type: 'html-keyboard-response',
                     stimulus: function(){
                         //Get the data of the last trial
                         let data = jsPsych.data.getLastTrialData();
-                        
+
                         var message = '';
-                        
+
                         //First response
                         let correct = JSON.parse(jsPsych.data.get().last(1).values()[0].correctOrNotArray)[0];
-                        
+
                         console.log("CORRECT: " + correct);
-                        
+
                         if(correct === 1){
                             message += '<h1 style="color:green"> Correct Left/Right response! </h1>';
                         }
@@ -413,24 +413,24 @@
                         else if(correct === -1){
                             message += '<h1 style="color:red"> No response entered! </h1><p>Remember to respond when the fixation cross turns black.</p>';
                         }
-                        
+
                         message += "<br><br>";
-                        
+
                         //Second response
                         let responded = JSON.parse(jsPsych.data.get().last(1).values()[0].confRespOrNotArray)[0];
-                        
+
                         console.log("RESPONDED: " + responded);
-                        
+
                         if(responded === 1){
                             message += '<h1 style="color:green"> Confidence response successfully recorded! </h1>';
                         }
                         else if(responded === -1){
                             message += '<h1 style="color:red"> No confidence response recorded! </h1><p>Remember to rate confidence when the fixation cross turns gray.</p>';
                         }
-                        
+
                         //Instructions to move on
                         message += '<br><p>Press the spacebar to move on.</p>';
-                        
+
                         return message;
                     },
                     choices: [32],
@@ -444,19 +444,19 @@
                         //jsPsych.data.get().addToLast({rt: 0});
                     }
                 };
-                
+
                 //Push the pair into the p1 array
                 p1_array.push(RDK_p1);
                 p1_array.push(feedback_p1);
-                
+
             }//End of for loop
-                
+
             return {
                 type: 'html-keyboard-response',
                 timeline: p1_array
             };
         }
-        
+
         function instructions_p2(){
             return {
                 type: 'instructions',
@@ -471,21 +471,21 @@
                 data: {trialType: 'instructions_p2'}
             };
         }
-        
+
         function practice_2(){
-            
+
             //Create the random variables
             let coherences_p2 = jsPsych.randomization.repeat([1], 10);
             let stimulusSide_p2 = jsPsych.randomization.repeat(['left','right'], 5);
             let coherentDirection_p2 = jsPsych.randomization.repeat([coherentDirectionMotion], 10);
             let nDots_p2 = jsPsych.randomization.sampleWithReplacement([200, 600, 1000], 10);
-            
-                        
+
+
             //For loop that pushes each practice trial and feedback trial into the array
             let p2_array = [];
-            
+
             for (var i = 0; i < 10; i++){
-                
+
                 //RDK trial
                 let RDK_p2= {
                     type: 'RDK-BM',
@@ -505,21 +505,21 @@
                     preStim_dur_in_ms: preStimDur_inMS,
                     data: {trialType: 'practice_2'},
                     visible_circle: false                };
-                
+
                 //Feedback trial
                 let feedback_p2 = {
                     type: 'html-keyboard-response',
                     stimulus: function(){
                         //Get the data of the last trial
                         let data = jsPsych.data.getLastTrialData();
-                        
+
                         var message = '';
-                        
+
                         //First response
                         let correct = JSON.parse(jsPsych.data.get().last(1).values()[0].correctOrNotArray)[0];
-                        
+
                         console.log("CORRECT: " + correct);
-                        
+
                         if(correct === 1){
                             message += '<h1 style="color:green"> Correct Left/Right response! (+1) </h1>';
                             points_p2 += 1;
@@ -532,14 +532,14 @@
                             message += '<h1 style="color:red"> No response entered! (-1) </h1><p>Remember to respond when the fixation cross turns black.</p>';
                             points_p2 -= 1;
                         }
-                        
+
                         message += "<br><br>";
-                        
+
                         //Second response
                         let responded = JSON.parse(jsPsych.data.get().last(1).values()[0].confRespOrNotArray)[0];
-                        
+
                         console.log("RESPONDED: " + responded);
-                        
+
                         if(responded === 1){
                             message += '<h1 style="color:green"> Confidence response successfully recorded! (+1) </h1>';
                             points_p2 += 1;
@@ -548,23 +548,23 @@
                             message += '<h1 style="color:red"> No confidence response recorded! (-1) </h1><p>Remember to rate confidence when the fixation cross turns gray.</p>';
                             points_p2 -= 1;
                         }
-                        
+
                         //Report the points
                         message += "<br><br>";
                         message += '<h2> Total Points: <span style="color:';
-                        
+
                         if(points_p2 >= 0){
                             message += 'green';
                         }
                         else{
                             message += 'red';
                         }
-                        
+
                         message += '">' + points_p2 + '</span></h2>';
-                        
+
                         //Instructions to move on
                         message += '<br><p>Press the spacebar to move on.</p>';
-                        
+
                         //Return the message
                         return message;
                     },
@@ -579,19 +579,19 @@
                         //jsPsych.data.get().addToLast({rt: 0});
                     }
                 };
-                
+
                 //Push the pair into the p1 array
                 p2_array.push(RDK_p2);
                 p2_array.push(feedback_p2);
-                
+
             }//End of for loop
-                
+
             return {
                 type: 'html-keyboard-response',
                 timeline: p2_array
             };
         }
-        
+
         function instructions_p3(){
             return {
                 type: 'instructions',
@@ -623,14 +623,14 @@
                 data: {trialType: 'instructions_p3'}
             };
         }
-        
+
         function practice_3(){
-            
+
             let coherences_p3 = jsPsych.randomization.sampleWithReplacement([1, 0.8, 0.6, 0.4, 0.2], 6);
             let stimulusSide_p3 = jsPsych.randomization.repeat(['left','right'], 3);
             let nDots_p3 = jsPsych.randomization.repeat([200, 600, 1000], 2);
             let coherentDirection_p3 = jsPsych.randomization.repeat([coherentDirectionMotion], 10);
-            
+
             return {
                 type: 'RDK-BM',
                 n_dots_array: nDots_p3,
@@ -651,7 +651,7 @@
                 visible_circle: false
             };
         }
-        
+
         function instructions_exp(){
             return {
                 type: 'instructions',
@@ -664,7 +664,7 @@
                 data: {trialType: 'instructions_exp'}
             };
         }
-        
+
         function exp_block_1(){
             return {
                 type: 'RDK-BM',
@@ -693,19 +693,19 @@
                 }
             };
         }
-        
+
         function rest_block_1(){
             return {
                 type: 'html-keyboard-response',
                 stimulus: function(){
-                    
+
                     if(points_exp >= 0){
                         var points_color = 'green';
                     }
                     else{
                         points_color = 'red';
                     }
-                    
+
                     return '<p>Great job! You\'re 1/3 of the way there!</p><p>Your score is currently <span style="color:' + points_color + '">' + points_exp + '</span>.</p><p>Feel free to take a 1-minute break to rest your eyes.</p>';
                 },
                 choices: [32],
@@ -713,7 +713,7 @@
                 data: {trialType: 'rest_block_1'}
             };
         }
-        
+
         function exp_block_2(){
             return {
                 type: 'RDK-BM',
@@ -740,19 +740,19 @@
                 }
             };
         }
-        
+
         function rest_block_2(){
             return {
                 type: 'html-keyboard-response',
                 stimulus: function(){
-                    
+
                     if(points_exp >= 0){
                         var points_color = 'green';
                     }
                     else{
                         points_color = 'red';
                     }
-                    
+
                     return '<p>Great job! You\'re 2/3 of the way there!</p><p>Your score is currently <span style="color:' + points_color + '">' + points_exp + '</span>.</p><p>Feel free to take a 1-minute break to rest your eyes.</p>';
                 },
                 choices: [32],
@@ -760,7 +760,7 @@
                 data: {trialType: 'rest_block_2'}
             };
         }
-        
+
         function exp_block_3(){
             return {
                 type: 'RDK-BM',
@@ -787,7 +787,7 @@
                 }
             };
         }
-        
+
         function rest_block_3(){
             if(points_exp >= 0){
                 var points_color = 'green';
@@ -798,26 +798,26 @@
             return {
                 type: 'html-keyboard-response',
                 stimulus: function(){
-                    
+
                     if(points_exp >= 0){
                         var points_color = 'green';
                     }
                     else{
                         points_color = 'red';
                     }
-                    
+
                     return '<p>Great job! You\'re done with the experiment!</p><p>Your final score is <span style="color:' + points_color + '">' + points_exp + '</span>.</p>';
-                }, 
+                },
                 choices: [32],
                 prompt: "<p>Press the spacebar to get your completion code.</p>",
                 data: {trialType: 'rest_block_3'}
             };
         }
-        
-        
-        
+
+
+
         //-------- Trial-Making --------
-        
+
         //Creates a consent form trial and returns it
         function createConsentFormBlock(){
 
@@ -828,10 +828,10 @@
                 check_fn: check_consent
             };
         }
-        
+
         //Create trial to generate completion code, and check if they've earned a bonus on this session
         function createCompletionCodeBlock(){
-        	
+
         return {
                 type: 'html-keyboard-response',
                 stimulus: '<center><p class="loader" style="margin-top: 20%">Loading...</p></center>',
@@ -841,21 +841,21 @@
     	        on_finish: function(data)
     	        {
     	            // Create completionCode and check if it exists in the database. Keep running until a unique one is generated
-    	            completionCode = Math.floor(Math.random() * 9000000 + 1000000); 
-    	            checkID(false, completionCode, 'completion_code', tableName, function(exists){getNewSubID(exists);}); 
-                    
+    	            completionCode = Math.floor(Math.random() * 9000000 + 1000000);
+    	            checkID(false, completionCode, 'completion_code', tableName, function(exists){getNewSubID(exists);});
+
                     //Add in artificial rt to fill in the column in the database
                     jsPsych.data.get().addToLast({rt: 0});
                     jsPsych.data.get().addToLast({key_press: 0});
-                    jsPsych.data.get().addToLast({points_exp: points_exp});	            
+                    jsPsych.data.get().addToLast({points_exp: points_exp});
                 },
                 timing_post_trial: 0
             };
         }
-            
+
         //Create trial to thank the participate, tell them about their bonus, and display their completionCode completion code
         function createGoodbyeBlock(){
-        	
+
             return {
                 type: 'html-button-response',
                 stimulus: function()
@@ -863,12 +863,12 @@
                     var output = '<p class="instructions">You are done with the experiment! Thank you for participating!</p>';
                     var data = jsPsych.data.get().last(1).values()[0];
                     var completionCode = data.completion_code;
-                    
+
 	                  // Display completionCode completion code
 	                  output += '<p class="instructions"> Your completion code is: <strong>'+ completionCode + '</strong></p>' +
                     '<p class="instructions">Please paste this number back into the box at the mTurk HIT website. Once you are done, please click the button below to officially end the experiment.</p>' +
                     '<p class="instructions"><i>Do <b>NOT</b> click the button below until you have submitted the above code.</i></p>';
-                    
+
                     return output;
                 },
                 choices: ['I have submitted the code. Exit the experiment.'],
@@ -879,29 +879,29 @@
                    },
             };
         }
-     
+
         //-------- Functionality --------
-        
+
         // Function to draw parameters from the URL
-        function $_GET(param) 
+        function $_GET(param)
         {
             var vars = {};
-            window.location.href.replace( 
+            window.location.href.replace(
                 /[?&]+([^=&]+)=?([^&]*)?/gi, // regexp
                 function( m, key, value ) { // callback
                     vars[key] = value !== undefined ? value : '';
                 }
                 );
 
-            if ( param ) 
+            if ( param )
             {
                 console.log(vars);
                 console.log(param);
-                return vars[param] ? vars[param] : null;    
+                return vars[param] ? vars[param] : null;
             }
             return vars;
         }
-        
+
         // Function to check compare the inputted ID to all IDs of the IDType in the SQL database
         function checkID(async, ID, IDType, data_table, callback)
         {
@@ -921,13 +921,13 @@
                 {
                     callback(exists);
                 },
-                error: function (xhr, ajaxOptions, thrownError) 
+                error: function (xhr, ajaxOptions, thrownError)
                 {
                    alert(thrownError);
                }
            });
         }
-        
+
         // Callback function for checking if the completionCode exists
         function getNewSubID(exists)
         {
@@ -937,19 +937,19 @@
                 checkID(false, completionCode, 'completion_code', tableName, function(existsNow){getNewSubID(existsNow);}); // Check if the new completionCode exists in the database
             }
             else // If the completionCode doesn't exist in the SQL database
-                jsPsych.data.addProperties({completion_code: completionCode}); // Add the completionCode to the data 
+                jsPsych.data.addProperties({completion_code: completionCode}); // Add the completionCode to the data
         }
-        
+
         //A function to save the data to the SQL table on the server.  This gets called at the end of the file.
         function save_data(data_table,data){
-          
+
             //Add data to the jsPsych data file
             jsPsych.data.addProperties({
                 workerId: workerId,
                 assignmentId: assignmentId,
                 hitId: hitId
             });
-            
+
             //Use AJAX to post the data onto the server
             $.ajax({
                 type:'post',
@@ -962,7 +962,7 @@
                 success: function(output) { console.log(output); } // write the result to javascript console
             });
         }
-        
+
         // sample function that might be used to check if a subject has given
         // consent to participate.
         function check_consent(elem) {
